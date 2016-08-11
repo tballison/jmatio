@@ -6,14 +6,14 @@ import java.util.Arrays;
 /**
  * Abstract class for numeric arrays.
  * 
- * @author Wojciech Gradkowski <wgradkowski@gmail.com>
+ * @author Wojciech Gradkowski &lt;wgradkowski@gmail.com&gt;
  *
  * @param <T>
  */
 /**
- * @author Wojciech Gradkowski <wgradkowski@gmail.com>
+ * @author Wojciech Gradkowski &lt;wgradkowski@gmail.com&gt;
  *
- * @param <T>
+ * @param <T> type of number
  */
 public abstract class MLNumericArray<T extends Number> extends MLArray 
                                                        implements ByteStorageSupport<T>
@@ -80,8 +80,8 @@ public abstract class MLNumericArray<T extends Number> extends MLArray
     }
     
     /**
-     * @param index
-     * @return
+     * @param index index
+     * @return real
      */
     public T getReal( int index )
     {
@@ -158,8 +158,8 @@ public abstract class MLNumericArray<T extends Number> extends MLArray
         return getImaginary( getIndex(m, n) );
     }
     /**
-     * @param index
-     * @return
+     * @param index index
+     * @return imaginary component
      */
     public T getImaginary( int index )
     {
@@ -229,8 +229,8 @@ public abstract class MLNumericArray<T extends Number> extends MLArray
         return getReal(m, n);
     }
     /**
-     * @param index
-     * @return
+     * @param index index
+     * @return value
      */
     public T get ( int index )
     {
@@ -241,7 +241,7 @@ public abstract class MLNumericArray<T extends Number> extends MLArray
         return get( real, index );
     }
     /**
-     * @param vector
+     * @param vector vector
      */
     public void set(T[] vector)
     {

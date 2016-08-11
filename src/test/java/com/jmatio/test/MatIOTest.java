@@ -12,13 +12,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import junit.framework.JUnit4TestAdapter;
-
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.jmatio.io.MatFileFilter;
 import com.jmatio.io.MatFileIncrementalWriter;
 import com.jmatio.io.MatFileReader;
@@ -38,11 +31,16 @@ import com.jmatio.types.MLSparse;
 import com.jmatio.types.MLStructure;
 import com.jmatio.types.MLUInt64;
 import com.jmatio.types.MLUInt8;
+import junit.framework.JUnit4TestAdapter;
+import org.junit.After;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 /**
  * The test suite for JMatIO
  * 
- * @author Wojciech Gradkowski <wgradkowski@gmail.com>
+ * @author Wojciech Gradkowski &lt;wgradkowski@gmail.com&gt;
  */
 public class MatIOTest
 {
@@ -1105,13 +1103,18 @@ public class MatIOTest
     @Test
     public void testJavaObject() throws Exception
     {
-        MatFileReader mfr = new MatFileReader();
-        Map<String, MLArray> content = mfr.read( new File("src/test/resources/java.mat") );
-        
-        MLJavaObject mlJavaObject = (MLJavaObject) content.get( "f" );
-        
-        assertEquals( "java.io.File", mlJavaObject.getClassName() );
-        assertEquals( new File("c:/temp"), mlJavaObject.getObject() );
+        try {
+            MatFileReader.setAllowObjectDeserialization(true);
+            MatFileReader mfr = new MatFileReader();
+            Map<String, MLArray> content = mfr.read(new File("src/test/resources/java.mat"));
+
+            MLJavaObject mlJavaObject = (MLJavaObject) content.get("f");
+
+            assertEquals("java.io.File", mlJavaObject.getClassName());
+            assertEquals(new File("c:/temp"), mlJavaObject.getObject());
+        } finally {
+            MatFileReader.setAllowObjectDeserialization(false);
+        }
     }
     @Test
     public void testObject() throws Exception

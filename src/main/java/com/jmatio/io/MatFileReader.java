@@ -1,7 +1,6 @@
 package com.jmatio.io;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.RandomAccessFile;
@@ -22,7 +21,6 @@ import com.jmatio.common.MatDataTypes;
 import com.jmatio.io.stream.BufferedOutputStream;
 import com.jmatio.io.stream.ByteBufferInputStream;
 import com.jmatio.io.stream.ByteBufferedOutputStream;
-import com.jmatio.io.stream.FileBufferedOutputStream;
 import com.jmatio.io.stream.MatFileInputStream;
 import com.jmatio.types.ByteStorageSupport;
 import com.jmatio.types.MLArray;
@@ -71,6 +69,23 @@ public class MatFileReader
     public static final int MEMORY_MAPPED_FILE = 1;
     public static final int DIRECT_BYTE_BUFFER = 2;
     public static final int HEAP_BYTE_BUFFER   = 4;
+
+    //whether or not to allow deserialization of
+    //java objects
+    private static boolean ALLOW_OBJECT_DESERIALIZATION = false;
+
+    /**
+     * Java objects can be stored in an MAT file.  If you do not
+     * absolutely trust the source of the file, it is better
+     * to leave this set to the default value: <code>false</code>.
+     *
+     * See: <a href="https://www.owasp.org/index.php/Deserialization_of_untrusted_data">owasp's description</a>
+     *
+     * @param allowDeserialization whether or not to allow deserialization of Java objects
+     */
+    public static void setAllowObjectDeserialization(boolean allowDeserialization) {
+        ALLOW_OBJECT_DESERIALIZATION = allowDeserialization;
+    }
     
     /**
      * MAT-file header
@@ -97,7 +112,7 @@ public class MatFileReader
      * @param fileName the MAT-file path <code>String</code>
      * @throws IOException when error occurred while processing the file.
      */
-    public MatFileReader(String fileName) throws FileNotFoundException, IOException
+    public MatFileReader(String fileName) throws IOException
     {
         this ( new File(fileName), new MatFileFilter() );
     }
@@ -109,7 +124,7 @@ public class MatFileReader
      * filter match condition will not be available in results.
      * 
      * @param fileName the MAT-file path <code>String</code>
-     * @param MatFileFilter array name filter.
+     * @param filter array name filter.
      * @throws IOException when error occurred while processing the file.
      */
     public MatFileReader(String fileName, MatFileFilter filter ) throws IOException
@@ -138,14 +153,11 @@ public class MatFileReader
      * meet filter match condition will not be available in results.
      * <p>
      * <i>Note: this method reads file using the memory mapped file policy, see
-     * notes to </code>{@link #read(File, MatFileFilter, com.jmatio.io.MatFileReader.MallocPolicy)}</code>
-     * 
-     * @param file
-     *            the MAT-file
-     * @param MatFileFilter
-     *            array name filter.
-     * @throws IOException
-     *             when error occurred while processing the file.
+     * notes to {@link #read(File, MatFileFilter, int)} </i>
+     *
+     * @param file the MAT-file
+     * @param filter array name filter.
+     * @throws IOException when error occurred while processing the file.
      */
     public MatFileReader(File file, MatFileFilter filter) throws IOException
     {
@@ -213,16 +225,12 @@ public class MatFileReader
      * <i>Note: memory mapped file will try to invoke a nasty code to relase
      * it's resources</i>
      * 
-     * @param file
-     *            a valid MAT-file file to be read
-     * @param filter
-     *            the array filter applied during reading
-     * @param policy
-     *            the file memory allocation policy
+     * @param file a valid MAT-file file to be read
+     * @param filter the array filter applied during reading
+     * @param policy the file memory allocation policy
      * @return the same as <code>{@link #getContent()}</code>
      * @see MatFileFilter
-     * @throws IOException
-     *             if error occurs during file processing
+     * @throws IOException if error occurs during file processing
      */
     private static final int DIRECT_BUFFER_LIMIT = 1 << 25;
     public synchronized Map<String, MLArray> read(File file, MatFileFilter filter,
@@ -412,7 +420,7 @@ public class MatFileReader
      * 
      * Returns <code>null</code> if the file contains no content for this name.
      * 
-     * @param - array name
+     * @param name -  array name
      * @return - the <code>MLArray</code> to which this file maps the specified name, 
      *           or null if the file contains no content for this name.
      */
@@ -442,8 +450,7 @@ public class MatFileReader
      * 
      * Modifies <code>buf</code> position.
      * 
-     * @param buf -
-     *            input byte buffer
+     * @param buf input byte buffer
      * @throws IOException when error occurs while reading the buffer.
      */
     private void readData( ByteBuffer buf ) throws IOException
@@ -552,19 +559,18 @@ public class MatFileReader
      * 
      * Uses recursive processing for some ML**** data types.
      * 
-     * @param buf -
-     *            input byte buffer
-     * @param isRoot -
-     *            when <code>true</code> informs that if this is a top level
-     *            matrix
+     * @param buf input byte buffer
+     * @param isRoot when <code>true</code> informs that if this is a top level matrix
      * @return - <code>MLArray</code> or <code>null</code> if matrix does
-     *         not match <code>filter</code>
+     *         not match <code>filter</code> or if a serialized Java
+     *         object is encountered and {@link #ALLOW_OBJECT_DESERIALIZATION}
+     *         is set to <code>false</code>
      * @throws IOException when error occurs while reading the buffer.
      */
     private MLArray readMatrix(ByteBuffer buf, boolean isRoot ) throws IOException
     {
         //result
-        MLArray mlArray;
+        MLArray mlArray = null;
         ISMatTag tag;
         
         //read flags
@@ -827,53 +833,46 @@ public class MatFileReader
                 break;
 
             case MLArray.mxOPAQUE_CLASS:
-                //read class name
-                tag = new ISMatTag(buf);
-                // class name
-                String className = tag.readToString();
+                if (ALLOW_OBJECT_DESERIALIZATION) {
+                    //read class name
+                    tag = new ISMatTag(buf);
+                    // class name
+                    String className = tag.readToString();
 //                System.out.println( "Class name: " + className );
-                // should be "java"
+                    // should be "java"
 //                System.out.println( "Array name: " + name );
-                
-                // the stored array name 
-                // read array name stored in dims (!)
-                byte[] nn = new byte[dims.length];
-                for ( int i = 0; i < dims.length; i++ )
-                {
-                    nn[i] = (byte)dims[i];
-                }
-                String arrName = new String(nn);
+
+                    // the stored array name
+                    // read array name stored in dims (!)
+                    byte[] nn = new byte[dims.length];
+                    for (int i = 0; i < dims.length; i++) {
+                        nn[i] = (byte) dims[i];
+                    }
+                    String arrName = new String(nn);
 //                System.out.println( "Array name: " + arrName );
-                
-                // next tag should be miMatrix
-                ISMatTag contentTag = new ISMatTag(buf);
-                
-                if ( contentTag.type == MatDataTypes.miMATRIX )
-                {
-                    // should return UInt8
-                    MLUInt8 content = (MLUInt8) readMatrix( buf, false );
-                    
-                    // de-serialize object
-                    ObjectInputStream ois = new ObjectInputStream( 
-                            new ByteBufferInputStream( content.getRealByteBuffer(), 
-                                                       content.getRealByteBuffer().limit()  ) );
-                    try
-                    {
-                        Object  o = ois.readObject();                
-                        mlArray = new MLJavaObject( arrName, className, o );
+
+                    // next tag should be miMatrix
+                    ISMatTag contentTag = new ISMatTag(buf);
+
+                    if (contentTag.type == MatDataTypes.miMATRIX) {
+                        // should return UInt8
+                        MLUInt8 content = (MLUInt8) readMatrix(buf, false);
+
+                        // de-serialize object
+                        ObjectInputStream ois = new ObjectInputStream(
+                                new ByteBufferInputStream(content.getRealByteBuffer(),
+                                        content.getRealByteBuffer().limit()));
+                        try {
+                            Object o = ois.readObject();
+                            mlArray = new MLJavaObject(arrName, className, o);
+                        } catch (Exception e) {
+                            throw new IOException(e);
+                        } finally {
+                            ois.close();
+                        }
+                    } else {
+                        throw new IOException("Unexpected java object content");
                     }
-                    catch (Exception e) 
-                    {
-                        throw new IOException( e );
-                    }
-                    finally
-                    {
-                        ois.close();
-                    }
-                }
-                else
-                {
-                    throw new IOException("Unexpected java object content");
                 }
                 break;
             case MLArray.mxOBJECT_CLASS:
@@ -881,7 +880,7 @@ public class MatFileReader
                 tag = new ISMatTag(buf);
                 
                 // class name
-                className = tag.readToString();
+                String className = tag.readToString();
                 
                 // TODO: currently copy pasted from structure
                 

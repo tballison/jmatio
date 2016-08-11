@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 /**
  * Class represents Int64 (long) array (matrix)
  * 
- * @author Wojciech Gradkowski <wgradkowski@gmail.com>
+ * @author Wojciech Gradkowski &lt;wgradkowski@gmail.com&gt;
  */
 public class MLInt64 extends MLNumericArray<Long>
 {

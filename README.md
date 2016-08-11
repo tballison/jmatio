@@ -26,6 +26,8 @@ Have fun :)
 Wojciech Gradkowski
 
 CHANGE LOG:
+[08-11-2016]
++ Cleaned javadocs
 
 [09-10-2014]
 + Changing to maven nature

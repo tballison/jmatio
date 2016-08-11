@@ -37,9 +37,9 @@ public class MLArrayQuery
     /**
      * 
      * 
-     * @param array
-     * @param query
-     * @return
+     * @param array array
+     * @param query query
+     * @return return value
      */
     public static Object q( MLArray array, String query )
     {

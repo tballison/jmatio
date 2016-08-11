@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 /**
  * Class represents UInt8 (byte) array (matrix)
  * 
- * @author Wojciech Gradkowski <wgradkowski@gmail.com>
+ * @author Wojciech Gradkowski &lt;wgradkowski@gmail.com&gt;
  */
 public class MLUInt8 extends MLNumericArray<Byte>
 {

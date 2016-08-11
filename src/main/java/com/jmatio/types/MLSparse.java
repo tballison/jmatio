@@ -14,10 +14,10 @@ public class MLSparse extends MLNumericArray<Double>
     private SortedMap<IndexMN, Double> imaginary;  
     
     /**
-     * @param name
-     * @param dims
-     * @param attributes
-     * @param nzmax
+     * @param name name
+     * @param dims dims
+     * @param attributes attributes
+     * @param nzmax nzmax
      */
     public MLSparse(String name, int[] dims, int attributes, int nzmax )
     {
@@ -38,7 +38,7 @@ public class MLSparse extends MLNumericArray<Double>
     /**
      * Gets maximum number of non-zero values
      * 
-     * @return
+     * @return max num of non-zero values
      */
     public int getMaxNZ()
     {
@@ -49,6 +49,7 @@ public class MLSparse extends MLNumericArray<Double>
      * 
      * <tt>ir</tt> points to an integer array of length nzmax containing the row indices of
      * the corresponding elements in <tt>pr</tt> and <tt>pi</tt>.
+     * @return row indices
      */
     public int[] getIR()
     {
@@ -64,13 +65,13 @@ public class MLSparse extends MLNumericArray<Double>
      * Gets column indices. 
      * 
      * <tt>jc</tt> points to an integer array of length N+1 that contains column index information.
-     * For j, in the range <tt>0&lt;=j&lt;=N–1</tt>, <tt>jc[j]</tt> is the index in ir and <tt>pr</tt> (and <tt>pi</tt>
-     * if it exists) of the first nonzero entry in the jth column and <tt>jc[j+1]–1</tt> index
+     * For j, in the range <tt>0&lt;=j&lt;=N 1</tt>, <tt>jc[j]</tt> is the index in ir and <tt>pr</tt> (and <tt>pi</tt>
+     * if it exists) of the first nonzero entry in the jth column and <tt>jc[j+1] 1</tt> index
      * of the last nonzero entry. As a result, <tt>jc[N]</tt> is also equal to nnz, the number
      * of nonzero entries in the matrix. If nnz is less than nzmax, then more nonzero
      * entries can be inserted in the array without allocating additional storage
      * 
-     * @return
+     * @return column indices
      */
     public int[] getJC()
     {
@@ -108,9 +109,9 @@ public class MLSparse extends MLNumericArray<Double>
         "Please use getReal(int index) instead.");
     }
     /**
-     * @param value
-     * @param m
-     * @param n
+     * @param value value
+     * @param m m
+     * @param n n
      */
     public void setReal(Double value, int m, int n)
     {
@@ -119,8 +120,8 @@ public class MLSparse extends MLNumericArray<Double>
         real.put(i, value );
     }
     /**
-     * @param value
-     * @param index
+     * @param value value
+     * @param index index
      */
     public void setReal(Double value, int index)
     {
@@ -128,9 +129,9 @@ public class MLSparse extends MLNumericArray<Double>
                 "Please use setReal(Double value, int m, int n) instead.");
     }
     /**
-     * @param value
-     * @param m
-     * @param n
+     * @param value value
+     * @param m m
+     * @param n n
      */
     public void setImaginary(Double value, int m, int n)
     {
@@ -139,8 +140,8 @@ public class MLSparse extends MLNumericArray<Double>
         imaginary.put(i, value );
     }
     /**
-     * @param value
-     * @param index
+     * @param value imaginary value
+     * @param index index
      */
     public void setImaginary(Double value, int index)
     {
@@ -191,7 +192,7 @@ public class MLSparse extends MLNumericArray<Double>
     /**
      * Returns the imaginary part (PI) array. PI has length number-of-nonzero-values.
      *
-     * @return
+     * @return imaginary part
      */
     public Double[] exportImaginary()
     {
@@ -235,7 +236,7 @@ public class MLSparse extends MLNumericArray<Double>
     /**
      * Matrix index (m,n)
      * 
-     * @author Wojciech Gradkowski <wgradkowski@gmail.com>
+     * @author Wojciech Gradkowski &lt;wgradkowski@gmail.com&gt;
      */
     private class IndexMN implements Comparable<IndexMN>
     {

@@ -11,7 +11,6 @@ import java.nio.channels.WritableByteChannel;
 import java.util.Collection;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
@@ -53,14 +52,13 @@ import com.jmatio.types.MLStructure;
  * 
  * this is "equal" to Matlab commands:
  * <pre><code>
- * >> double_arr = [ 1 2; 3 4; 5 6];
- * >> char_arr = 'I am dummy';
- * >>
- * >> save('mat_file.mat', 'double_arr');
- * >> save('mat_file.mat', 'char_arr', '-append');
- * </pre></code>
+ * &gt;&gt; double_arr = [ 1 2; 3 4; 5 6];
+ * &gt;&gt; char_arr = 'I am dummy';
+ * &gt;&gt;
+ * &gt;&gt; save('mat_file.mat', 'double_arr');
+ * &gt;&gt; save('mat_file.mat', 'char_arr', '-append');
+ * </code></pre>
  * 
- * @author 
  */
 public class MatFileIncrementalWriter
 {
@@ -74,8 +72,7 @@ public class MatFileIncrementalWriter
      * Creates a writer to a file given the filename.
      * 
      * @param fileName - name of ouput file
-     * @throws IOException
-     * @throws DataFormatException
+     * @throws IOException on underlying IOException
      */
     public MatFileIncrementalWriter(String fileName) throws IOException
     {
@@ -85,8 +82,7 @@ public class MatFileIncrementalWriter
      * Creats a writer to a file given the File object.
      * 
      * @param file - an output <code>File</code>
-     * @throws IOException
-     * @throws DataFormatException
+     * @throws IOException on underlying IOException
      */
     public MatFileIncrementalWriter(File file) throws IOException
     {
@@ -98,8 +94,7 @@ public class MatFileIncrementalWriter
      * Writes MAT-file header and compressed data (<code>miCOMPRESSED</code>).
      * 
      * @param chan - <code>WritableByteChannel</code>
-     * @param data - <code>Collection</code> of <code>MLArray</code> elements
-     * @throws IOException
+     * @throws IOException on underlying IOException
      */
     public MatFileIncrementalWriter(WritableByteChannel chan) throws IOException
     {
@@ -164,8 +159,6 @@ public class MatFileIncrementalWriter
     /**
      * Writes <code>MLArrays</code> into <code>WritableByteChannel</code>.
      * 
-     * @param channel
-     *            the channel to write to
      * @param data
      *            the collection of <code>{@link MLArray}</code> objects
      * @throws IOException
@@ -199,8 +192,8 @@ public class MatFileIncrementalWriter
     }
     
     /**
-     * Writes MAT-file header into <code>OutputStream</code>
-     * @param os <code>OutputStream</code>
+     * Writes MAT-file header into channel
+     * @param channel channel to which to write0
      * @throws IOException
      */
     private void writeHeader(WritableByteChannel channel) throws IOException
@@ -238,9 +231,9 @@ public class MatFileIncrementalWriter
     /**
      * Writes MATRIX into <code>OutputStream</code>.
      * 
-     * @param os - <code>OutputStream</code>
+     * @param output - <code>DataOutputStream</code>
      * @param array - a <code>MLArray</code>
-     * @throws IOException
+     * @throws IOException on underlying IOException
      */
     private void writeMatrix(DataOutputStream output, MLArray array) throws IOException
     {   
@@ -445,7 +438,7 @@ public class MatFileIncrementalWriter
      * 
      * @param os - <code>OutputStream</code>
      * @param array - a <code>MLArray</code>
-     * @throws IOException
+     * @throws IOException on underlying IOException
      */
     private void writeFlags(DataOutputStream os, MLArray array) throws IOException
     {
@@ -472,7 +465,7 @@ public class MatFileIncrementalWriter
      * 
      * @param os - <code>OutputStream</code>
      * @param array - a <code>MLArray</code>
-     * @throws IOException
+     * @throws IOException on underlying IOException
      */
     private void writeDimensions(DataOutputStream os, MLArray array) throws IOException
     {
@@ -494,7 +487,7 @@ public class MatFileIncrementalWriter
      * 
      * @param os - <code>OutputStream</code>
      * @param array - a <code>MLArray</code>
-     * @throws IOException
+     * @throws IOException on underlying IOException
      */
     private void writeName(DataOutputStream os, MLArray array) throws IOException
     {

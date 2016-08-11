@@ -39,7 +39,7 @@ public class MatFileHeader
     /**
      * Gets descriptive text
      * 
-     * @return
+     * @return description
      */
     public String getDescription()
     {
@@ -58,7 +58,7 @@ public class MatFileHeader
     /**
      * When creating a MAT-file, set version to 0x0100
      * 
-     * @return
+     * @return version
      */
     public int getVersion()
     {

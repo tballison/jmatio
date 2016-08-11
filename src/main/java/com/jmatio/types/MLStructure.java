@@ -18,7 +18,7 @@ import java.util.Set;
  * Note: array of structures can contain only structures of the same type
  * , that means structures that have the same field names.
  * 
- * @author Wojciech Gradkowski <wgradkowski@gmail.com>
+ * @author Wojciech Gradkowski &lt;wgradkowski@gmail.com&gt;
  */
 public class MLStructure extends MLArray
 {
@@ -63,8 +63,8 @@ public class MLStructure extends MLArray
      * 
      * @param name - name of the field
      * @param value - <code>MLArray</code> field value
-     * @param m
-     * @param n
+     * @param m m
+     * @param n n
      */
     public void setField(String name, MLArray value, int m, int n)
     {
@@ -75,7 +75,7 @@ public class MLStructure extends MLArray
      * 
      * @param name - name of the field
      * @param value - <code>MLArray</code> field value
-     * @param index
+     * @param index index
      */
     public void setField(String name, MLArray value, int index)
     {
@@ -92,7 +92,7 @@ public class MLStructure extends MLArray
     /**
      * Gets the maximum length of field descriptor
      * 
-     * @return
+     * @return max field length
      */
     public int getMaxFieldLenth()
     {
@@ -109,7 +109,7 @@ public class MLStructure extends MLArray
     /**
      * Dumps field names to byte array. Field names are written as Zero End Strings
      * 
-     * @return
+     * @return byte array
      */
     public byte[] getKeySetToByteArray() 
     {
@@ -138,7 +138,7 @@ public class MLStructure extends MLArray
     /**
      * Gets all field from sruct array as flat list of fields.
      * 
-     * @return
+     * @return fields from struct array
      */
     public Collection<MLArray> getAllFields()
     {
@@ -167,8 +167,8 @@ public class MLStructure extends MLArray
      * Gets a value of the field described by name from current struct
      * in struct array or null if the field doesn't exist.
      * 
-     * @param name
-     * @return
+     * @param name name
+     * @return value of the field
      */
     public MLArray getField(String name)
     {
@@ -178,10 +178,10 @@ public class MLStructure extends MLArray
      * Gets a value of the field described by name from (m,n)'th struct
      * in struct array or null if the field doesn't exist.
      * 
-     * @param name
-     * @param m
-     * @param n
-     * @return
+     * @param name name
+     * @param m m
+     * @param n n
+     * @return value of the field
      */
     public MLArray getField(String name, int m, int n)
     {
@@ -191,8 +191,8 @@ public class MLStructure extends MLArray
      * Gets a value of the field described by name from index'th struct
      * in struct array or null if the field doesn't exist.
      * 
-     * @param name
-     * @param index
+     * @param name name
+     * @param index index
      * @return value of the field or null if the field doesn't exist
      */
     public MLArray getField(String name, int index)

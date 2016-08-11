@@ -57,9 +57,9 @@ public class MLChar extends MLArray
      * Added method to allow initialization of a char array representing 
      * an array of strings.
      * 
-     * @param name
-     * @param values
-     * @param maxlen
+     * @param name name
+     * @param values values
+     * @param maxlen maxlen
      */
     public MLChar(String name, String[] values, int maxlen)
     {
@@ -102,8 +102,8 @@ public class MLChar extends MLArray
     /** 
      * Set one row, specifying the row.
      * 
-     * @param value
-     * @param idx
+     * @param value value
+     * @param idx index
      */
     public void set(String value, int idx)
     {

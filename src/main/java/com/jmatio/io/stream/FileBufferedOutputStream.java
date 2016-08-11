@@ -16,8 +16,7 @@ import com.jmatio.types.MLArray;
  * This is an {@link OutputStream} that is backed by a {@link RandomAccessFile}
  * and accessed with buffered access.
  * 
- * @author Wojciech Gradkowski (<a
- *         href="mailto:wgradkowski@gmail.com">wgradkowski@gmail.com</a>)
+ * @author Wojciech Gradkowski (<a href="mailto:wgradkowski@gmail.com">wgradkowski@gmail.com</a>)
  * 
  */
 public class FileBufferedOutputStream extends BufferedOutputStream

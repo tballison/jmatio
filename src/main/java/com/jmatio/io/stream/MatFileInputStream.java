@@ -9,7 +9,7 @@ import com.jmatio.types.ByteStorageSupport;
 /**
  * MAT-file input stream class. 
  * 
- * @author Wojciech Gradkowski <wgradkowski@gmail.com>
+ * @author Wojciech Gradkowski &lt;wgradkowski@gmail.com&gt;
  */
 public class MatFileInputStream
 {
@@ -19,7 +19,7 @@ public class MatFileInputStream
     /**
      * Attach MAT-file input stream to <code>InputStream</code>
      * 
-     * @param is - input stream
+     * @param buf- input stream
      * @param type - type of data in the stream
      * @see com.jmatio.common.MatDataTypes
      */
@@ -33,8 +33,8 @@ public class MatFileInputStream
      * Reads data (number of bytes red is determined by <i>data type</i>)
      * from the stream to <code>int</code>.
      * 
-     * @return
-     * @throws IOException
+     * @return int
+     * @throws IOException on underlying IOException
      */
     public int readInt() throws IOException
     {
@@ -67,7 +67,7 @@ public class MatFileInputStream
      * from the stream to <code>char</code>.
      * 
      * @return - char
-     * @throws IOException
+     * @throws IOException on underlying IOException
      */
     public char readChar() throws IOException
     {
@@ -98,7 +98,7 @@ public class MatFileInputStream
      * from the stream to <code>double</code>.
      * 
      * @return - double
-     * @throws IOException
+     * @throws IOException on underlying IOException
      */
     public double readDouble() throws IOException
     {

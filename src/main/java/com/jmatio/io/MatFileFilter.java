@@ -11,7 +11,7 @@ import java.util.Set;
  * when there's no need to load all arrays into memory.
  * 
  * Usage:
- * <pre></code>
+ * <pre><code>
  * //create new filter instance
  * MatFileFilter filter = new MatFileFilter();
  * //add a needle

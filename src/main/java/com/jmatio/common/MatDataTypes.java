@@ -3,7 +3,7 @@ package com.jmatio.common;
 /**
  * MAT-file data types
  * 
- * @author Wojciech Gradkowski <wgradkowski@gmail.com>
+ * @author Wojciech Gradkowski &lt;wgradkowski@gmail.com&gt;
  */
 public class MatDataTypes
 {
@@ -40,7 +40,7 @@ public class MatDataTypes
      * Return number of bytes for given type.
      * 
      * @param type - <code>MatDataTypes</code>
-     * @return
+     * @return size
      */
     public static int sizeOf(int type)
     {
