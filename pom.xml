@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.tallison</groupId>
 	<artifactId>jmatio</artifactId>
-	<version>1.2</version>
+	<version>1.3</version>
 	<name>JMatIO</name>
 	<description>Matlab's MAT-file I/O API in JAVA. Supports Matlab 5 MAT-flie format reading and writing. Written in pure JAVA.</description>
 	<url>https://github.com/tballison/jmatio</url>
@@ -62,8 +62,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.5.1</version>
 				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
 			</plugin>
 			<plugin>

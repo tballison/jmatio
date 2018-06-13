@@ -125,7 +125,7 @@ public class MatIOTest
             ((MLNumericArray<?>)mlArrayRetrived).get(i);
         }
         final long stop = System.nanoTime();
-        System.out.println("--> " + (stop - start)/1e6 +  "[ns]");
+        //System.out.println("--> " + (stop - start)/1e6 +  "[ns]");
                
         //test if MLArray objects are equal
         assertEquals("Test if value red from file equals value stored", mluint8, mlArrayRetrived);

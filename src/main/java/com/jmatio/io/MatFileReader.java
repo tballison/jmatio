@@ -1,10 +1,17 @@
 package com.jmatio.io;
 
+
+import static java.lang.invoke.MethodHandles.*;
+import static java.lang.invoke.MethodType.methodType;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.RandomAccessFile;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -15,6 +22,7 @@ import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.zip.InflaterInputStream;
 
 import com.jmatio.common.MatDataTypes;
@@ -66,6 +74,14 @@ import com.jmatio.types.MLUInt8;
  */
 public class MatFileReader
 {
+    private static final BufferCleaner CLEANER;
+    static {
+        Object cleaner = unmapHackImpl();
+        if (cleaner instanceof String) {
+            throw new RuntimeException((String)cleaner);
+        }
+        CLEANER = (BufferCleaner)cleaner;
+    }
     public static final int MEMORY_MAPPED_FILE = 1;
     public static final int DIRECT_BYTE_BUFFER = 2;
     public static final int HEAP_BYTE_BUFFER   = 4;
@@ -316,11 +332,21 @@ public class MatFileReader
         {
             if ( roChannel != null )
             {
-                roChannel.close();
+                try {
+                    roChannel.close();
+                } catch (IOException e) {
+                    //swallow
+                    e.printStackTrace();
+                }
             }
             if ( raFile != null )
             {
-                raFile.close();
+                try {
+                    raFile.close();
+                } catch (IOException e ) {
+                    //swallow
+                    e.printStackTrace();
+                }
             }
             if ( buf != null && bufferWeakRef != null && policy == MEMORY_MAPPED_FILE )
             {
@@ -369,20 +395,16 @@ public class MatFileReader
      * @throws Exception
      *             all kind of evil stuff
      */
-    private void clean(final Object buffer) throws Exception
+    private void clean(final ByteBuffer buffer) throws Exception
     {
+        //"Java 9 Jigsaw whitelists access to sun.misc.Cleaner, so setAccessible works for now)
         AccessController.doPrivileged(new PrivilegedAction<Object>()
         {
             public Object run()
             {
                 try
                 {
-                    Method getCleanerMethod = buffer.getClass().getMethod(
-                            "cleaner", new Class[0]);
-                    getCleanerMethod.setAccessible(true);
-                    sun.misc.Cleaner cleaner = (sun.misc.Cleaner) getCleanerMethod
-                            .invoke(buffer, new Object[0]);
-                    cleaner.clean();
+                    CLEANER.freeBuffer("buff", buffer);
                 }
                 catch (Exception e)
                 {
@@ -391,10 +413,90 @@ public class MatFileReader
                 return null;
             }
         });
-    }       
-    
-    
-    
+    }
+    //Copied/pasted from Lucene's MMapDirectory
+    //"Needs access to private APIs in DirectBuffer, sun.misc.Cleaner, and sun.misc.Unsafe to enable hack")
+    private static Object unmapHackImpl() {
+        final Lookup lookup = lookup();
+        try {
+            try {
+                // *** sun.misc.Unsafe unmapping (Java 9+) ***
+                final Class<?> unsafeClass = Class.forName("sun.misc.Unsafe");
+                // first check if Unsafe has the right method, otherwise we can give up
+                // without doing any security critical stuff:
+                final MethodHandle unmapper = lookup.findVirtual(unsafeClass, "invokeCleaner",
+                        methodType(void.class, ByteBuffer.class));
+                // fetch the unsafe instance and bind it to the virtual MH:
+                final Field f = unsafeClass.getDeclaredField("theUnsafe");
+                f.setAccessible(true);
+                final Object theUnsafe = f.get(null);
+                return newBufferCleaner(ByteBuffer.class, unmapper.bindTo(theUnsafe));
+            } catch (SecurityException se) {
+                // rethrow to report errors correctly (we need to catch it here, as we also catch RuntimeException below!):
+                throw se;
+            } catch (ReflectiveOperationException | RuntimeException e) {
+                // *** sun.misc.Cleaner unmapping (Java 8) ***
+                final Class<?> directBufferClass = Class.forName("java.nio.DirectByteBuffer");
+
+                final Method m = directBufferClass.getMethod("cleaner");
+                m.setAccessible(true);
+                final MethodHandle directBufferCleanerMethod = lookup.unreflect(m);
+                final Class<?> cleanerClass = directBufferCleanerMethod.type().returnType();
+
+                /* "Compile" a MH that basically is equivalent to the following code:
+                 * void unmapper(ByteBuffer byteBuffer) {
+                 *   sun.misc.Cleaner cleaner = ((java.nio.DirectByteBuffer) byteBuffer).cleaner();
+                 *   if (Objects.nonNull(cleaner)) {
+                 *     cleaner.clean();
+                 *   } else {
+                 *     noop(cleaner); // the noop is needed because MethodHandles#guardWithTest always needs ELSE
+                 *   }
+                 * }
+                 */
+                final MethodHandle cleanMethod = lookup.findVirtual(cleanerClass, "clean", methodType(void.class));
+                final MethodHandle nonNullTest = lookup.findStatic(Objects.class, "nonNull", methodType(boolean.class, Object.class))
+                        .asType(methodType(boolean.class, cleanerClass));
+                final MethodHandle noop = dropArguments(constant(Void.class, null).asType(methodType(void.class)), 0, cleanerClass);
+                final MethodHandle unmapper = filterReturnValue(directBufferCleanerMethod, guardWithTest(nonNullTest, cleanMethod, noop))
+                        .asType(methodType(void.class, ByteBuffer.class));
+                return newBufferCleaner(directBufferClass, unmapper);
+            }
+        } catch (SecurityException se) {
+            return "Unmapping is not supported, because not all required permissions are given to the jmatio JAR file: " + se +
+                    " [Please grant at least the following permissions: RuntimePermission(\"accessClassInPackage.sun.misc\") " +
+                    " and ReflectPermission(\"suppressAccessChecks\")]";
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return "Unmapping is not supported on this platform, because internal Java APIs are not compatible with this jmatio version: " + e;
+        }
+    }
+
+    static interface BufferCleaner {
+        void freeBuffer(String resourceDescription, ByteBuffer b) throws IOException;
+    }
+    private static BufferCleaner newBufferCleaner(final Class<?> unmappableBufferClass, final MethodHandle unmapper) {
+        assert Objects.equals(methodType(void.class, ByteBuffer.class), unmapper.type());
+        return (String resourceDescription, ByteBuffer buffer) -> {
+            if (!buffer.isDirect()) {
+                throw new IllegalArgumentException("unmapping only works with direct buffers");
+            }
+            if (!unmappableBufferClass.isInstance(buffer)) {
+                throw new IllegalArgumentException("buffer is not an instance of " + unmappableBufferClass.getName());
+            }
+            final Throwable error = AccessController.doPrivileged((PrivilegedAction<Throwable>) () -> {
+                try {
+                    unmapper.invokeExact(buffer);
+                    return null;
+                } catch (Throwable t) {
+                    return t;
+                }
+            });
+            if (error != null) {
+                throw new IOException("Unable to unmap the mapped buffer: " + resourceDescription, error);
+            }
+        };
+    }
+
+
     /**
      * Gets MAT-file header
      * 

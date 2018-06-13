@@ -26,6 +26,12 @@ Have fun :)
 Wojciech Gradkowski
 
 CHANGE LOG:
+[06-13-2018]
++ Copied/pasted Lucene's solution for preventing 
+  memory leak associated with memory mapped files.
+  jmatio is now ok with Java 8 -> 11-ea
+  This now requires Java 8.
+
 [08-11-2016]
 + Cleaned javadocs
 
