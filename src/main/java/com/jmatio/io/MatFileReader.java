@@ -1,30 +1,6 @@
 package com.jmatio.io;
 
 
-import static java.lang.invoke.MethodHandles.*;
-import static java.lang.invoke.MethodType.methodType;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.RandomAccessFile;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.zip.InflaterInputStream;
-
 import com.jmatio.common.MatDataTypes;
 import com.jmatio.io.stream.BufferedOutputStream;
 import com.jmatio.io.stream.ByteBufferInputStream;
@@ -49,6 +25,37 @@ import com.jmatio.types.MLStructure;
 import com.jmatio.types.MLUInt32;
 import com.jmatio.types.MLUInt64;
 import com.jmatio.types.MLUInt8;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.RandomAccessFile;
+import java.lang.invoke.MethodHandle;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.zip.InflaterInputStream;
+
+import static java.lang.invoke.MethodHandles.Lookup;
+import static java.lang.invoke.MethodHandles.constant;
+import static java.lang.invoke.MethodHandles.dropArguments;
+import static java.lang.invoke.MethodHandles.filterReturnValue;
+import static java.lang.invoke.MethodHandles.guardWithTest;
+import static java.lang.invoke.MethodHandles.lookup;
+import static java.lang.invoke.MethodType.methodType;
 
 /**
  * MAT-file reader. Reads MAT-file into <code>MLArray</code> objects.
@@ -74,14 +81,30 @@ import com.jmatio.types.MLUInt8;
  */
 public class MatFileReader
 {
+    private static final Logger LOG = LoggerFactory.getLogger(MatFileReader.class);
+
     private static final BufferCleaner CLEANER;
     static {
-        Object cleaner = unmapHackImpl();
-        if (cleaner instanceof String) {
-            throw new RuntimeException((String)cleaner);
+        final AtomicReference<Object> cleaner = new AtomicReference<>();
+        final Throwable error = AccessController.doPrivileged((PrivilegedAction<Throwable>) () -> {
+            try {
+                cleaner.set(unmapHackImpl());
+            } catch (Throwable t) {
+                return t;
+            }
+            return null;
+        });
+        if (error != null) {
+            LOG.warn("problem creating cleaner", error);
+            CLEANER = null;
+        } else if (cleaner.get() instanceof String) {
+            LOG.warn((String)(cleaner.get()));
+            CLEANER = null;
+        } else {
+            CLEANER = (BufferCleaner)(cleaner.get());
         }
-        CLEANER = (BufferCleaner)cleaner;
     }
+
     public static final int MEMORY_MAPPED_FILE = 1;
     public static final int DIRECT_BYTE_BUFFER = 2;
     public static final int HEAP_BYTE_BUFFER   = 4;
@@ -348,14 +371,13 @@ public class MatFileReader
                     e.printStackTrace();
                 }
             }
-            if ( buf != null && bufferWeakRef != null && policy == MEMORY_MAPPED_FILE )
+            if ( buf != null && bufferWeakRef != null && policy == MEMORY_MAPPED_FILE && CLEANER != null)
             {
-                try
+                try {
+                   CLEANER.freeBuffer("buff", buf);
+                } catch ( Exception e )
                 {
-                    clean(buf);
-                }
-                catch ( Exception e )
-                {
+                    LOG.warn("problem freeing buffer", e);
                     int GC_TIMEOUT_MS = 1000;
                     buf = null;
                     long start = System.currentTimeMillis();
@@ -363,6 +385,7 @@ public class MatFileReader
                     {
                         if (System.currentTimeMillis() - start > GC_TIMEOUT_MS)
                         {
+                            LOG.warn("couldn't unmap buffer");
                             break; //a hell cannot be unmapped - hopefully GC will
                                    //do it's job later
                         }
@@ -374,46 +397,7 @@ public class MatFileReader
         }
         
     }
-    
-    /**
-     * Workaround taken from bug <a
-     * href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4724038">#4724038</a>
-     * to release the memory mapped byte buffer.
-     * <p>
-     * Little quote from SUN: <i>This is highly inadvisable, to put it mildly.
-     * It is exceedingly dangerous to forcibly unmap a mapped byte buffer that's
-     * visible to Java code. Doing so risks both the security and stability of
-     * the system</i>
-     * <p>
-     * Since the memory byte buffer used to map the file is not exposed to the
-     * outside world, maybe it's save to use it without being cursed by the SUN.
-     * Since there is no other solution this will do (don't trust voodoo GC
-     * invocation)
-     * 
-     * @param buffer
-     *            the buffer to be unmapped
-     * @throws Exception
-     *             all kind of evil stuff
-     */
-    private void clean(final ByteBuffer buffer) throws Exception
-    {
-        //"Java 9 Jigsaw whitelists access to sun.misc.Cleaner, so setAccessible works for now)
-        AccessController.doPrivileged(new PrivilegedAction<Object>()
-        {
-            public Object run()
-            {
-                try
-                {
-                    CLEANER.freeBuffer("buff", buffer);
-                }
-                catch (Exception e)
-                {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-        });
-    }
+
     //Copied/pasted from Lucene's MMapDirectory
     //"Needs access to private APIs in DirectBuffer, sun.misc.Cleaner, and sun.misc.Unsafe to enable hack")
     private static Object unmapHackImpl() {
@@ -470,7 +454,7 @@ public class MatFileReader
         }
     }
 
-    static interface BufferCleaner {
+    interface BufferCleaner {
         void freeBuffer(String resourceDescription, ByteBuffer b) throws IOException;
     }
     private static BufferCleaner newBufferCleaner(final Class<?> unmappableBufferClass, final MethodHandle unmapper) {
