@@ -47,8 +47,8 @@ public class MLSparse extends MLNumericArray<Double>
     /**
      * Gets row indices
      * 
-     * <tt>ir</tt> points to an integer array of length nzmax containing the row indices of
-     * the corresponding elements in <tt>pr</tt> and <tt>pi</tt>.
+     * <kbd>ir</kbd> points to an integer array of length nzmax containing the row indices of
+     * the corresponding elements in <kbd>pr</kbd> and <kbd>pi</kbd>.
      * @return row indices
      */
     public int[] getIR()
@@ -64,10 +64,10 @@ public class MLSparse extends MLNumericArray<Double>
     /**
      * Gets column indices. 
      * 
-     * <tt>jc</tt> points to an integer array of length N+1 that contains column index information.
-     * For j, in the range <tt>0&lt;=j&lt;=N 1</tt>, <tt>jc[j]</tt> is the index in ir and <tt>pr</tt> (and <tt>pi</tt>
-     * if it exists) of the first nonzero entry in the jth column and <tt>jc[j+1] 1</tt> index
-     * of the last nonzero entry. As a result, <tt>jc[N]</tt> is also equal to nnz, the number
+     * <kbd>jc</kbd> points to an integer array of length N+1 that contains column index information.
+     * For j, in the range <kbd>0&lt;=j&lt;=N 1</kbd>, <kbd>jc[j]</kbd> is the index in ir and <kbd>pr</kbd> (and <kbd>pi</kbd>
+     * if it exists) of the first nonzero entry in the jth column and <kbd>jc[j+1] 1</kbd> index
+     * of the last nonzero entry. As a result, <kbd>jc[N]</kbd> is also equal to nnz, the number
      * of nonzero entries in the matrix. If nnz is less than nzmax, then more nonzero
      * entries can be inserted in the array without allocating additional storage
      * 
