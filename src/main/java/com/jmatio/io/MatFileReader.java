@@ -1110,7 +1110,7 @@ public class MatFileReader
         
         description = zeroEndByteArrayToString(descriptionBuffer);
         
-        if ( !description.matches("MATLAB 5.0 MAT-file.*") )
+        if ( !description.startsWith("MATLAB 5.0 MAT-file") )
         {
             throw new MatlabIOException("This is not a valid MATLAB 5.0 MAT-file.");
         }
