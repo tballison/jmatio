@@ -74,9 +74,6 @@ import static java.lang.invoke.MethodType.methodType;
  * 
  * @see com.jmatio.io.MatFileFilter
  * @author Wojciech Gradkowski (<a href="mailto:wgradkowski@gmail.com">wgradkowski@gmail.com</a>)
- */
-/**
- * @author Wojciech Gradkowski (<a href="mailto:wgradkowski@gmail.com">wgradkowski@gmail.com</a>)
  *
  */
 public class MatFileReader
@@ -215,7 +212,7 @@ public class MatFileReader
     public MatFileReader()
     {
         filter  = new MatFileFilter();
-        data    = new LinkedHashMap<String, MLArray>();
+        data    = new LinkedHashMap<>();
     }
     
     /**
@@ -252,6 +249,7 @@ public class MatFileReader
     {
         return read(file, new MatFileFilter(), policy);
     }
+    private static final int DIRECT_BUFFER_LIMIT = 1 << 25;
     /**
      * Reads the content of a MAT-file and returns the mapped content.
      * <p>
@@ -278,7 +276,6 @@ public class MatFileReader
      * @see MatFileFilter
      * @throws IOException if error occurs during file processing
      */
-    private static final int DIRECT_BUFFER_LIMIT = 1 << 25;
     public synchronized Map<String, MLArray> read(File file, MatFileFilter filter,
             int policy) throws IOException
     {
@@ -339,7 +336,7 @@ public class MatFileReader
                     break;
                 case MEMORY_MAPPED_FILE:
                     buf = roChannel.map(FileChannel.MapMode.READ_ONLY, 0, (int)roChannel.size());        
-                    bufferWeakRef = new WeakReference<MappedByteBuffer>((MappedByteBuffer)buf);            
+                    bufferWeakRef = new WeakReference<>((MappedByteBuffer)buf);
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown file allocation policy");
@@ -353,10 +350,6 @@ public class MatFileReader
             }
             
             return getContent();
-        }
-        catch ( IOException e )
-        {
-            throw e;
         }
         finally
         {
@@ -868,16 +861,16 @@ public class MatFileReader
                         MLUInt8 content = (MLUInt8) readMatrix(buf, false);
 
                         // de-serialize object
-                        ObjectInputStream ois = new ObjectInputStream(
-                                new ByteBufferInputStream(content.getRealByteBuffer(),
-                                        content.getRealByteBuffer().limit()));
-                        try {
-                            Object o = ois.readObject();
-                            mlArray = new MLJavaObject(arrName, className, o);
-                        } catch (Exception e) {
-                            throw new IOException(e);
-                        } finally {
-                            ois.close();
+                        if (content.getRealByteBuffer() != null) {
+
+                            try (ObjectInputStream ois = new ObjectInputStream(
+                                    new ByteBufferInputStream(content.getRealByteBuffer(),
+                                            content.getRealByteBuffer().limit()))) {
+                                Object o = ois.readObject();
+                                mlArray = new MLJavaObject(arrName, className, o);
+                            } catch (Exception e) {
+                                throw new IOException(e);
+                            }
                         }
                     } else {
                         throw new IOException("Unexpected java object content");
@@ -1158,7 +1151,7 @@ public class MatFileReader
             //
             byte[] bytes = readToByteArray();
             
-            return new String( bytes, "UTF-8" );
+            return new String( bytes, StandardCharsets.UTF_8 );
         	
         }
         
