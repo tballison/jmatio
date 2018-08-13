@@ -35,6 +35,7 @@
 	</licenses>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -100,6 +101,9 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<version>2.10.4</version>
+				<configuration>
+				  <additionalparam>-Xdoclint:none</additionalparam>
+				</configuration>
 				<executions>
 					<execution>
 						<id>attach-javadocs</id>
@@ -123,6 +127,32 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>de.thetaphi</groupId>
+				<artifactId>forbiddenapis</artifactId>
+				<!-- if this version contains commons-io 2.6, remove hard-coded commons-io version below -->
+				<version>2.5</version>
+				<configuration>
+					<targetVersion>${maven.compiler.target}</targetVersion>
+					<failOnUnresolvableSignatures>false</failOnUnresolvableSignatures>
+					<failOnUnsupportedJava>false</failOnUnsupportedJava>
+					<bundledSignatures>
+						<bundledSignature>jdk-unsafe</bundledSignature>
+						<bundledSignature>jdk-deprecated</bundledSignature>
+						<bundledSignature>jdk-non-portable</bundledSignature>
+						<bundledSignature>jdk-internal</bundledSignature>
+					</bundledSignatures>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+							<goal>testCheck</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 			<plugin>
 				<groupId>org.sonatype.plugins</groupId>
 				<artifactId>nexus-staging-maven-plugin</artifactId>
