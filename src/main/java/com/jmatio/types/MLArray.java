@@ -1,5 +1,7 @@
 package com.jmatio.types;
 
+import java.nio.charset.StandardCharsets;
+
 public class MLArray
 {
     
@@ -70,7 +72,7 @@ public class MLArray
     }
     public byte[] getNameToByteArray()
     {
-        return name.getBytes();
+        return name.getBytes(StandardCharsets.UTF_8);
     }
     
     public int[] getDimensions()

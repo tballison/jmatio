@@ -1,5 +1,6 @@
 package com.jmatio.io;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 /**
@@ -92,7 +93,7 @@ public class MatFileHeader
         sb.append("[");
         sb.append("desriptive text: " + description);
         sb.append(", version: " + version);
-        sb.append(", endianIndicator: " + new String(endianIndicator) );
+        sb.append(", endianIndicator: " + new String(endianIndicator, StandardCharsets.US_ASCII) );
         sb.append("]");
         
         return sb.toString();

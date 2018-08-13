@@ -19,7 +19,7 @@ public class MatFileInputStream
     /**
      * Attach MAT-file input stream to <code>InputStream</code>
      * 
-     * @param buf- input stream
+     * @param buf - input stream
      * @param type - type of data in the stream
      * @see com.jmatio.common.MatDataTypes
      */
