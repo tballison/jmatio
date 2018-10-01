@@ -41,14 +41,8 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.7.24</version>
+			<version>1.7.25</version>
 		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.7.24</version>
-		</dependency>
-
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -72,7 +66,7 @@
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.5.1</version>
+				<version>3.8.0</version>
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
@@ -81,7 +75,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.19.1</version>
+				<version>2.22.0</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -100,9 +94,9 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.10.4</version>
+				<version>3.0.1</version>
 				<configuration>
-				  <additionalparam>-Xdoclint:none</additionalparam>
+				  <additionalJOption>-Xdoclint:none</additionalJOption>
 				</configuration>
 				<executions>
 					<execution>
@@ -131,7 +125,7 @@
 				<groupId>de.thetaphi</groupId>
 				<artifactId>forbiddenapis</artifactId>
 				<!-- if this version contains commons-io 2.6, remove hard-coded commons-io version below -->
-				<version>2.5</version>
+				<version>2.6</version>
 				<configuration>
 					<targetVersion>${maven.compiler.target}</targetVersion>
 					<failOnUnresolvableSignatures>false</failOnUnresolvableSignatures>
@@ -156,7 +150,7 @@
 			<plugin>
 				<groupId>org.sonatype.plugins</groupId>
 				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<version>1.6.7</version>
+				<version>1.6.8</version>
 				<extensions>true</extensions>
 				<configuration>
 					<serverId>sonatype-nexus-staging</serverId>
